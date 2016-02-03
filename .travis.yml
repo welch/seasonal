@@ -1,0 +1,27 @@
+# We need numpy and scipy on travis's VM, and they are famously
+# painful to build or install from a binary. Miniconda to the
+# rescue -- a light anaconda python distribution that can install them.
+#
+language: python
+python:
+  - 2.7
+notifications:
+  email: false
+
+# run on the new Travis infrastructure
+sudo: false
+
+# Install stuff
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda2/bin:$PATH
+  - conda update --yes conda
+install:
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy pytest
+  - python setup.py install
+
+# Run test
+script:
+  - py.test -s -v
