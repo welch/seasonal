@@ -30,6 +30,10 @@ setup(name='seasonal',
           "numpy",
           "scipy"
       ],
+      tests_require=[
+          "pytest",
+          "pandas"
+      ],
       extras_require={
           # all console_script entry points require pandas to read CSV.
           # additionally, if a console_script is to be invoked with
@@ -38,15 +42,9 @@ setup(name='seasonal',
           "PLOT":  ["matplotlib"]
       },
       package_data={
-          "seasonal": [
-              "../data/*/*",
-              "../README.md",
-              "../README.rst",
-              "../LICENSE.txt"
-          ]
+          "seasonal": ["data/*"]
       },
       setup_requires=["pytest-runner"],
-      tests_require=["pytest"],
       entry_points={
           "console_scripts": [
               "seasonal = seasonal.application:seasonal_cmd [CSV]",

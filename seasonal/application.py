@@ -8,6 +8,7 @@ commandline functions published as entry points in setup.py
 
 """
 from sys import stderr
+import os.path
 from optparse import OptionParser
 from textwrap import dedent
 import numpy as np
@@ -97,7 +98,7 @@ def seasonal_cmd():
     (options, args) = parser.parse_args()
 
     if options.demo:
-        args = ["data/TSDL/beer.4.csv"]
+        args = [os.path.join(os.path.dirname(__file__), "data/beer.csv")]
         options.plot = True
 
     if not args:
@@ -144,7 +145,7 @@ def seasonal_cmd():
             ).to_csv()
 
         if options.plot:
-            _seasonal_plot(csvpath, column, index, data, trend, deseasoned)
+            _seasonal_plot(os.path.basename(csvpath), column, index, data, trend, deseasoned)
 
 def _seasonal_plot(title, column, index, data, trend, deseasoned):\
     #pylint: disable=too-many-arguments
@@ -220,7 +221,7 @@ def trend_cmd():
         stderr.write("{:.2f}\t{}\t{}\n".format(tev*100, len(data), csvpath))
 
         if options.plot:
-            _trend_plot(csvpath, column, data, trend)
+            _trend_plot(os.path.basename(csvpath), column, data, trend)
 
         elif options.csv:
             print pd.DataFrame(
@@ -308,7 +309,7 @@ def periodogram_cmd():
             for peak in peaks:
                 print "{}\t{}\t{}\t{:.3f}".format(peak[0], peak[2], peak[3], peak[1])
         if options.plot:
-            _periodogram_plot(csvpath, column, data, trend, peaks)
+            _periodogram_plot(os.path.basename(csvpath), column, data, trend, peaks)
 
 def _periodogram_plot(title, column, data, trend, peaks):
     """display periodogram results using matplotlib"""

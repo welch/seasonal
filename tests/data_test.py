@@ -1,14 +1,10 @@
 # test fit_seasons on actual data files
 #
 import os.path
-try:
-    import pandass as pd
-except:
-    pd = None
-    print("pandas is not installed. Skipping CSV tests\n")
+import pandas as pd
+from seasonal.application import read_csv # pylint:disable=import-error
 from seasonal import adjust_seasons, fit_seasons # pylint:disable=import-error
 from seasonal.sequences import sine # pylint:disable=import-error
-from seasonal.application import read_csv # pylint:disable=import-error
 
 def check_csv(csvpath, split=None):
     try:
