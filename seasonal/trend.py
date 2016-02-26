@@ -65,8 +65,7 @@ def fit_trend(data, kind="spline", period=None, ptimes=2):
     return filtered
 
 def guess_trended_period(data):
-    """return a rough estimate of the major period of trendful data,
-    excluding "small" periods.
+    """return a rough estimate of the major period of trendful data.
 
     Periodogram wants detrended data to score periods reliably. To do
     that, apply a broad median filter based on a reasonable maximum

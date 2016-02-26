@@ -8,21 +8,24 @@ Robustly estimate trend and periodicity in a timeseries.
 timeseries data with only a few periods.  It is intended for
 estimating season, trend, and level when initializing structural
 timeseries models like Holt-Winters [Hyndman], and its defaults are
-biased towards the kinds of training sets found in that setting. Input
+biased towards the kinds of training data that arise in that setting. Input
 samples are assumed evenly-spaced from a continuous-time signal with
-noise but no anomalies.
-
-In this package, trend removal is in service of isolating and
-estimating periodic (non-trend) variation. "trend" is in the sense of
-Cleveland's STL decomposition [Cleveland] -- a lowpass smoothing of
-the data that, when removed from the original series, preserves
-original seasonal variation.  Detrending is accomplishd by a coarse
-fitted spline, mean or median filters, or a fitted line.
+additive noise but no anomalies.
 
 The seasonal estimate will be a list of period-over-period averages at
 each seasonal offset. You may specify a period length, or have it
 estimated from the data. The latter is an interesting capability of
-this package.
+this package. If you're analyzing a single timeseries, you likely know
+its seasonality in advance. If you're sifting through a thousand
+series, collected at differing sampling rates, automatic period
+detection is a real convenience.
+
+Trend removal in this package is in service of isolating and
+estimating the periodic (non-trend) variation. "trend" is in the sense
+of Cleveland's STL decomposition [Cleveland] -- a lowpass smoothing of
+the data that, when removed from the original series, preserves
+original seasonal variation.  Detrending is accomplishd by a coarse
+fitted spline, mean or median filters, or a fitted line.
 
 In an addition to a python API for estimating seasonal offsets for
 your timeseries models, the seasonal package also provides executables
@@ -33,10 +36,10 @@ to process CSV files from the command line:
   * `seasonal.periodogram` -- periodogram for raw or detrended data
 
 It is not the aim of this package to construct explanatory models for
-complete data sets as these commands do -- you would be _much_ better
-served building a proper STL or ARIMA model in R. But these
-executables are convenient for exploring seasonal's behavior and for
-troubleshooting surprises during use.
+complete data sets as these commands do in their demonstration data
+sets. You would be _much_ better served building a proper STL or
+ARIMA model in R. But these executables are convenient for exploring
+seasonal's behavior and for troubleshooting surprises during use.
 
 Quick Start
 -----------
@@ -72,43 +75,74 @@ period  %TEV    %EEV    N   cycles  file
 Example usage (Python)
 ------------
 ```
+>>> import math
 >>> import numpy as np
 >>> from seasonal import fit_seasons, adjust_seasons
 >>> import matplotlib.pyplot as plt
 >>>
->>> # make a trended noisy sine wave
+>>> # make a trended sine wave
 >>> s = [10 * math.sin(i * 2 * math.pi / 25) + i * i /100.0 for i in range(100)]
 >>>
 >>> # detrend and deseasonalize
->>> seasons, trend, eev = fit_seasons(s, details=True)
->>> residual = adjust_seasons(s, seasons=seasons)
+>>> seasons, trend = fit_seasons(s)
+>>> adjusted = adjust_seasons(s, seasons=seasons)
+>>> residual = adjusted - trend
 >>>
 >>> # visualize results
 >>> plt.figure()
 >>> plt.plot(s, label='data')
 >>> plt.plot(trend, label='trend')
 >>> plt.plot(residual, label='residual')
->>> plt.legend(loc='upper-left')
+>>> plt.legend(loc='upper left')
 ```
 ![trend sine screenshot](./images/sine+trend.jpg)
 ```
 >>>
 >>> # how about with some noise?
->>> plt.figure()
 >>> noisy = s + np.random.normal(0, 5, len(s))
+>>> seasons, trend = fit_seasons(noisy)
+>>> adjusted = adjust_seasons(noisy, seasons=seasons)
+>>> residual = adjusted - trend
+>>>
+>>> plt.figure()
 >>> plt.plot(noisy, label='noisy')
->>> residual = adjust_seasons(noisy)
->>> explained = noisy - residual
->>> plt.plot(explained, label='trend+season')
+>>> plt.plot(noisy - residual, label='trend+season')
 >>> plt.plot(residual, label='residual')
->>> plt.legend(loc='upper-left')
+>>> plt.legend(loc='upper left')
 ```
 ![noisy sine screenshot](./images/noisy.jpg)
 
 See docstrings for `fit_seasons()`, `adjust_seasons()`, `fit_trend()`,
 `adjust_trend()` for much more detail. And see
 `seasonal/application.py:seasonal_cmd()` for code that creates
-various combinations of detrended/deseasonalized series
+various combinations of detrended/deseasonalized series.
+
+Forecasting Example
+-------------------
+
+Sample code that uses `seasonal` to initialize seasonal and trend
+state in a Holt-Winters model is in `examples/hw.py`. The
+`estimate_state()` function is the important thing; the rest is just
+enough of a Holt-Winters implementation to demonstrate it.
+
+You can run this from the seasonal directory like this:
+```
+> python examples/hw.py --demo
+||seasons|| = 52.891
+estimated alpha=0.361, beta=0.043, gamma=0.882
+RMSE =  12.1125827022
+final ||seasons|| = 248.801
+```
+![holt winters screenshot](./images/hw-demo.jpg)
+
+This demo uses the classic air passenger data. The seasonality is
+multiplicative, but our model is additive. The initial 20% of the data
+is used to estimate the seasonal offsets, and the Holt-Winters updates
+gradually increase the magnitude of the seasonality to track the
+multiplicative changes. Try this with different values for --split (10
+is so brief that no seasonality can be estimated, while 1.0 fits the
+initial state to the entire data set, leading to large errors in the
+early timesteps)
 
 Seasonal commands
 -----------------
@@ -212,34 +246,47 @@ original series, preserves original seasonal variation. Such
 detrending is accomplishd by a coarse fitted spline, mean or median
 filters, or a fitted line.
 
-#### Period Estimation
+The default trend model uses piecewise cubic splines. The optional
+median filter is a useful alternative, as it preserves edges and
+prevents impulses from distorting the baseline signal level. Try
+`seasonal.trend` on data/NAB/art_daily* with `--trend median` for a
+demonstration of this. It would be interesting to autoselect between
+these two trend models based on signal characteristics. Send me your
+data!
 
-Seasonal offsets are simple to estimate given a period -- they are
-period-over-period averages using all the provided data.
+#### Seasonality and Period Estimation
 
-Estimating the period itself is less straightforward (though often,
-you know the periodicity of your data, so this may not an
-issue). Although a variety of techniques exist that operate in the
-frequency domain, they lean heavily on sinusoidal decomposition
-[Quinn] and don't recover sharp estimates for the short, noisy
-sequences we often get in model training sets. This package instead
-uses a time-domain approach that accommodates any periodic signal
-shape, with additive noise. It tests a range of plausible
-periodicities for best fit the detrended data, and is formulated as a
-model selection problem.
+Seasonality is represented as an offset for each seasonal interval.
+This is the same representation as is used in Holt-Winters. The
+representation does not enforce any kind of continuity from season to
+season, which is either a strength (sharp transitions are possible) or
+a weakness (noise is less efficiently rejected).  Seasonal offsets for
+a given periodicity are estimated as period-over-period averages using
+all the provided data.
 
-First, a range of likely periods is estimated via periodogram
-averaging [Welch] (no relation to the author).  This is an optional,
-ad-hoc optimization. It works well for all our tests and examples, but
-there are surely classes of signal or levels of noise that will fool
-it.
+Estimating the period itself is less straightforward. Although a
+variety of techniques exist that operate in the frequency domain, they
+lean heavily on sinusoidal decomposition [Quinn] and don't recover
+sharp estimates for the short, noisy sequences we often get in model
+training sets. This package instead uses a time-domain approach that
+accommodates any periodic signal shape.
 
-Next, a time-domain period estimator chooses the best integer period
-based on cross-validated residual errors [Hastie]. It also tests the
-strength of the seasonal effect using the R^2 of the leave-one-out
-cross-validation. For the seasonal model used here, this is the
-expected fraction of variance (after detrending) explained by the best
-seasonal estimate.
+The period estimator tests a range of plausible periodicities for best
+fit to the detrended data. It is formulated as a model selection
+problem using cross-validated residual errors [Hastie].  The strength
+of the seasonal effect is also considered, using the R^2 of the
+leave-one-out cross-validation. For the seasonal model used here, this
+is the expected fraction of variance (after detrending) explained by
+the best seasonal estimate.
+
+The time-domain approach is expensive (O(n^2)). As an optional
+optimization, we first estimate a range of likely periods using a
+fast, robust periodogram averaging technique
+[Welch (no relation to the author)].  This works well for all our
+tests and examples, but its calibration is ad-hoc and there are surely
+classes of signal or levels of noise that will fool it. The
+`seasonal.periodogram` command provides a good visualization of this
+part of the computation.
 
 References
 ----------

@@ -1,4 +1,4 @@
-# test seasonal.fit_seasons() using synthetic sources
+# test seasonal.fit_trend() using synthetic sources
 #
 # Generate synthetic waveforms at varying periods, trends and noise
 # levels, and repeatedly test to estimate a success rate for

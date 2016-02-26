@@ -3,7 +3,7 @@
 import os.path
 import pandas as pd
 from seasonal.application import read_csv # pylint:disable=import-error
-from seasonal import adjust_seasons, fit_seasons # pylint:disable=import-error
+from seasonal import fit_seasons # pylint:disable=import-error
 from seasonal.sequences import sine # pylint:disable=import-error
 
 def check_csv(csvpath, split=None):
@@ -12,8 +12,8 @@ def check_csv(csvpath, split=None):
     except ValueError:
         period = None
     _, data, _ = read_csv(csvpath, split=split)
-    seasons = fit_seasons(data)
-    assert seasons is period  or len(seasons) == period, \
+    seasons, trend = fit_seasons(data)
+    assert seasons is None  or len(seasons) == period, \
         "expected period {}, got {}".format(
             period, len(seasons) if seasons else None)
 

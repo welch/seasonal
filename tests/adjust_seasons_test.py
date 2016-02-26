@@ -1,13 +1,12 @@
 # test seasonal.adjust_seasons() options handling
 #
 # adjust_seasons() handles a variety of optional arguments.
-# verify that adjust_trend() and fit_seasons() are correctly called
-# for different option combinations.
+# verify that adjust_trend() correctly calledfor different option combinations.
 #
 # No noise in this test set.
 #
 import numpy as np
-from seasonal import adjust_seasons, fit_seasons # pylint:disable=import-error
+from seasonal import fit_trend, adjust_seasons # pylint:disable=import-error
 from seasonal.sequences import sine # pylint:disable=import-error
 
 PERIOD = 25
@@ -27,28 +26,35 @@ def isseasons(a):
 
 def test_auto():
     adjusted = adjust_seasons(DATA)
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
 
 def test_trend_line():
     adjusted = adjust_seasons(DATA, trend="line")
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
+
+def test_explicit_trend():
+    trend = fit_trend(DATA, kind="line")
+    adjusted = adjust_seasons(DATA, trend=trend)
+    assert adjusted.std() < DATA.std()
 
 def test_trend_period():
     adjusted = adjust_seasons(DATA, trend="line", period=PERIOD)
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
 
 def test_trend_seasons():
     adjusted = adjust_seasons(DATA, trend="line", seasons=SEASONS)
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
 
 def test_trend_spline():
     adjusted = adjust_seasons(DATA, trend="spline")
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
 
 def test_period():
     adjusted = adjust_seasons(DATA, period=PERIOD)
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()
+    adjusted = adjust_seasons(DATA, period=PERIOD / 2) # no seasonality
+    assert adjusted is None
 
 def test_seasons():
     adjusted = adjust_seasons(DATA, seasons=SEASONS)
-    assert adjusted.std() < DATA.std()/10
+    assert adjusted.std() < DATA.std()

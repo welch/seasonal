@@ -21,5 +21,5 @@ Will Welch (github@quietplease.com)
 """
 from .version import __version__, VERSION
 from .trend import fit_trend
-from .seasonal import fit_seasons, adjust_seasons
+from .seasonal import fit_seasons, adjust_seasons, rsquared_cv
 from .periodogram import periodogram, periodogram_peaks

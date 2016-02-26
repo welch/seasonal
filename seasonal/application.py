@@ -20,7 +20,7 @@ try:
 except ImportError:
     plt = None
 from .version import __version__
-from .seasonal import fit_seasons, adjust_seasons
+from .seasonal import fit_seasons, adjust_seasons, rsquared_cv
 from .trend import fit_trend
 from .periodogram import periodogram, periodogram_peaks
 
@@ -114,17 +114,17 @@ def seasonal_cmd():
     for csvpath in args:
         index, data, column = read_csv(
             csvpath, column=options.column, split=options.split)
-        seasons, trend, fev = fit_seasons(
+        seasons, trend = fit_seasons(
             data, trend=options.trend, period=options.period,
-            periodogram_thresh=options.thresh, min_ev=options.minev,
-            details=True)
+            periodogram_thresh=options.thresh, min_ev=options.minev)
         detrended = data - trend
         tev = 1.0 - detrended.var() / data.var()
         if seasons is not None:
-            deseasoned = adjust_seasons(data, trend=None, seasons=seasons)
+            deseasoned = adjust_seasons(data, trend=trend, seasons=seasons)
+            fev = rsquared_cv(detrended, len(seasons))
         else:
             deseasoned = data.copy()
-
+            fev = 0
         period = len(seasons) if seasons is not None else None
         if period is None:
             stderr.write("0\t0.0\t0.0\t{}\t1\t{}\n".format(len(data), csvpath))

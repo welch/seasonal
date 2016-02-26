@@ -103,7 +103,7 @@ def periodogram(data, min_period=4, max_period=None):
     nperseg = min(max_period * 2, len(data) / 2) # FFT window
     freqs, power = scipy.signal.welch(
         data, 1.0, scaling='spectrum', nperseg=nperseg)
-    periods = [int(round(1.0 / freq)) for freq in freqs[1:]]
+    periods = np.array([int(round(1.0 / freq)) for freq in freqs[1:]])
     power = power[1:]
     # take the max among frequencies having the same integer part
     idx = 1

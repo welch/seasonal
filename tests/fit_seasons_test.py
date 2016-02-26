@@ -19,7 +19,7 @@ def setup_function(_):
     np.random.seed(0)
 
 def fit_period(s):
-    seasons = seasonal.fit_seasons(s, trend=None)
+    seasons, _ = seasonal.fit_seasons(s, trend=None)
     return None if seasons is None else len(seasons)
 
 def try_zeros(noise=0, reps=1):
@@ -138,8 +138,8 @@ def test_explicit_period():
     period = 200
     s = sequences.sine(1.0, period, CYCLES, period / 3)
     # wrong but plausible
-    seasons = seasonal.fit_seasons(s, period=period - 2)
+    seasons, _ = seasonal.fit_seasons(s, period=period - 2)
     assert seasons is not None and len(seasons) == period - 2
     # flat out wrong
-    _, _, fev = seasonal.fit_seasons(s, period=period / 2, details=True)
-    assert fev < 0.05
+    seasons, _ = seasonal.fit_seasons(s, period=period / 2)
+    assert seasons is None
