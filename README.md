@@ -121,7 +121,7 @@ Forecasting Example
 -------------------
 
 Sample code that uses `seasonal` to initialize seasonal and trend
-state in a Holt-Winters model is in `examples/hw.py`. The
+state in a Holt-Winters model is in [`examples/hw.py`](https://github.com/welch/seasonal/blob/master/examples/hw.py). The
 `estimate_state()` function is the important thing; the rest is just
 enough of a Holt-Winters implementation to demonstrate it.
 
