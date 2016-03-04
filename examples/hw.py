@@ -74,14 +74,12 @@ def advance(y, params, state):
     .. [1] https://www.otexts.org/fpp/7/5, Holt-Winters additive method
 
     """
-    if state.t % len(state.seasons) == 0:
-        seasons = state.seasons - state.seasons.mean()
-    else:
-        seasons = state.seasons
+    seasons = state.seasons
     e = y - forecast(state)
     level = state.level + state.trend + params.alpha * e
     trend = state.trend + params.alpha * params.beta * e
     seasons[(state.t + 1) % len(state.seasons)] += params.gamma * e
+    # in a proper implementation, we would enforce seasons being 0-mean.
     return HWState(state.t+1, level, trend, seasons), e
 
 def estimate_params(data, state, alpha0=0.3, beta0=0.1, gamma0=0.1):
@@ -193,9 +191,9 @@ def main():
         parser.print_help()
         exit(-1)
 
-    if options.plot and not plt:
+    if not plt:
         stderr.write(
-            "Error: matplotlib must be installed to use the --plot option\n")
+            "Error: matplotlib must be installed\n")
         exit(-1)
 
     for csvpath in args:
