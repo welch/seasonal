@@ -28,6 +28,11 @@ where noted.
     Monthly traffic fatalities in Ontario 1960-1974
     (https://datamarket.com/data/set/22ty/monthly-traffic-fatalities-in-ontario-1960-1974)
 
+`mn-public-drunk.12.csv`
+
+    Monthly Minneapolis public drunkenness intakes Jan.’66-Jul’78
+    (https://datamarket.com/data/set/22ph/monthly-minneapolis-public-drunkenness-intakes-jan66-jul78)
+
 `monthly-bus.12.csv`
 
     Portland Oregon average monthly bus ridership (/100)
