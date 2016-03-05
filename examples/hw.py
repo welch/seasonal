@@ -122,7 +122,7 @@ def estimate_params(data, state, alpha0=0.3, beta0=0.1, gamma0=0.1):
         args=(state, data), approx_grad=True)[0]
     return HWParams(alpha, beta, gamma)
 
-def hw(data, split=None):
+def hw(data, split=None, params=None):
     """fit a HW model and return the 1-step forecast and smoothed series.
 
     Parameters
@@ -146,9 +146,9 @@ def hw(data, split=None):
         splitidx = int(split * len(data))
     state = estimate_state(data[:splitidx])
     print "||seasons|| = {:.3f}".format(np.sqrt(np.sum(state.seasons ** 2)))
-    params = estimate_params(data, state)
-    print "estimated alpha={:.3f}, beta={:.3f}, gamma={:.3f}".format(*params)
-
+    if params is None:
+        params = estimate_params(data, state)
+        print "estimated alpha={:.3f}, beta={:.3f}, gamma={:.3f}".format(*params)
     level = np.empty(len(data))
     fcast = np.empty(len(data))
     for y in data:
@@ -177,6 +177,9 @@ def main():
     parser.add_option("--split", type="float", default=None,
                       help=("split data at the split*100%  or int(split) " +
                             "point for initialization"))
+    parser.add_option("--params",
+                      help=("comma-separated list of alpha, beta, gamma. " +
+                            "default is to estimate these from ALL the data"))
     parser.add_option("--demo", action="store_true",
                       help="demonstrate with some air passenger data")
     (options, args) = parser.parse_args()
@@ -196,16 +199,29 @@ def main():
             "Error: matplotlib must be installed\n")
         exit(-1)
 
+    if options.params is not None:
+        try:
+            params = [float(p) for p in options.params.split(',')]
+            options.params = HWParams(*params)
+        except Exception:
+            stderr.write("\nError: --params wants alpha,beta,gamma\n")
+            parser.print_help()
+            exit(-1)
+
     for csvpath in args:
-        _, data, column = read_csv(csvpath, column=options.column)
-        fcast, smoothed = hw(data, options.split)
-        plt.figure()
-        plt.title("Holt Winters demonstration")
-        plt.plot(data, label=column)
-        plt.plot(fcast, label="forecast")
-        plt.plot(smoothed, label="smoothed")
+        index, data, column = read_csv(csvpath, column=options.column)
+        fcast, smoothed = hw(data, options.split, params=options.params)
+        plt.figure(1)
+        plt.subplot(211)
+        plt.title("Holt Winters for "+os.path.basename(csvpath))
+        plt.plot(index, data, label=column)
+        plt.plot(index, fcast, label="forecast")
+        plt.plot(index, smoothed, label="smoothed")
         leg = plt.legend(loc='upper left')
         leg.get_frame().set_alpha(0.5)
+        plt.subplot(212)
+        plt.title("Forecast Error")
+        plt.plot(index, fcast - data)
         plt.show()
 
 if __name__ == "__main__":
