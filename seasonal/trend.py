@@ -50,7 +50,7 @@ def fit_trend(data, kind="spline", period=None, ptimes=2):
         return np.zeros(len(data))
     if period is None:
         period = guess_trended_period(data)
-    window = (int(period * ptimes) / 2) * 2 - 1 # odd window
+    window = int(int(period * ptimes) / 2) * 2 - 1 # odd window
     if kind == "median":
         filtered = aglet(median_filter(data, window), window)
     elif kind == "mean":
@@ -116,7 +116,7 @@ def aglet(src, window, dst=None):
     """
     if dst is None:
         dst = np.array(src)
-    half = window / 2
+    half = int(window / 2)
     leftslope = stats.theilslopes(src[: window])[0]
     rightslope = stats.theilslopes(src[-window :])[0]
     dst[0:half] = np.arange(-half, 0) * leftslope + src[half]
@@ -130,8 +130,8 @@ def median_filter(data, window):
 
     """
     filtered = np.copy(data)
-    for i in range(window/2, len(data) - window/2):
-        filtered[i] = np.median(data[max(0, i - window/2) : i + window/2 + 1])
+    for i in range(int(window/2), len(data) - int(window/2)):
+        filtered[i] = np.median(data[max(0, i - int(window/2)) : i + int(window/2) + 1])
     return filtered
 
 def mean_filter(data, window):
@@ -142,20 +142,22 @@ def mean_filter(data, window):
     """
     filtered = np.copy(data)
     cum = np.concatenate(([0], np.cumsum(data)))
-    half = window / 2
+    half = int(window / 2)
     filtered[half : -half] = (cum[window:] - cum[:-window]) / float(window)
     return filtered
 
 def line_filter(data, window):
     """fit a line to the data, after filtering"""
     # knock down seasonal variation with a median filter first
-    half = window / 2
+    half = int(window / 2)
     coarse = median_filter(data, window)[half : -half] # discard crazy ends
     slope, _, lower, upper = stats.theilslopes(coarse)
+    # inspired by stats.theilslopes
+    intercept = np.median(data) - slope*np.median(np.arange(0, len(data)))
     if lower <= 0.0 and upper >= 0.0:
         filtered = np.zeros(len(data))
     else:
-        filtered = slope  * np.arange(len(data))
+        filtered = slope  * np.arange(len(data)) + intercept
     return filtered
 
 def spline_filter(data, nsegs):
