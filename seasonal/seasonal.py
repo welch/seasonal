@@ -151,7 +151,7 @@ def adjust_seasons(data, trend="spline", period=None, seasons=None):
     if seasons is None:
         seasons, trend = fit_seasons(data, trend=trend, period=period)
     if seasons is not None:
-        ncycles = len(data) / len(seasons) + 1
+        ncycles = int(len(data) / len(seasons)) + 1
         season_reps = np.tile(seasons, ncycles)
         return data - season_reps[: len(data)]
     else:
