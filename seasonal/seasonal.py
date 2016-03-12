@@ -17,6 +17,7 @@ estimated from the data. The latter is an interesting capability of
 this package.
 
 """
+from __future__ import division
 import numpy as np
 from .trend import fit_trend
 from .periodogram import periodogram_peaks
@@ -108,7 +109,7 @@ def fit_seasons(data, trend="spline", period=None, min_ev=0.05,
         peaks = sorted(peaks)
     else:
         # search everything (XXX parameterize this)
-        peaks = [(0, 0, 4, len(data)/2)]
+        peaks = [(0, 0, 4, len(data) // 2)]
     cv_mse, cv_seasons = np.inf, []
     period = 0
     for interval in peaks:
@@ -151,7 +152,7 @@ def adjust_seasons(data, trend="spline", period=None, seasons=None):
     if seasons is None:
         seasons, trend = fit_seasons(data, trend=trend, period=period)
     if seasons is not None:
-        ncycles = len(data) / len(seasons) + 1
+        ncycles = len(data) // len(seasons) + 1
         season_reps = np.tile(seasons, ncycles)
         return data - season_reps[: len(data)]
     else:

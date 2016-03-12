@@ -14,6 +14,7 @@ Input samples are assumed evenly-spaced from an anomaly-free
 continuous-time signal.
 
 """
+from __future__ import division
 import numpy as np
 from scipy import stats
 from scipy.interpolate import LSQUnivariateSpline
@@ -50,7 +51,7 @@ def fit_trend(data, kind="spline", period=None, ptimes=2):
         return np.zeros(len(data))
     if period is None:
         period = guess_trended_period(data)
-    window = (int(period * ptimes) / 2) * 2 - 1 # odd window
+    window = (int(period * ptimes) // 2) * 2 - 1 # odd window
     if kind == "median":
         filtered = aglet(median_filter(data, window), window)
     elif kind == "mean":
@@ -58,7 +59,7 @@ def fit_trend(data, kind="spline", period=None, ptimes=2):
     elif kind == "line":
         filtered = line_filter(data, window)
     elif kind == "spline":
-        nsegs = int(len(data) / (window * 2)) + 1
+        nsegs = len(data) // (window * 2) + 1
         filtered = aglet(spline_filter(data, nsegs), window)
     else:
         raise Exception("adjust_trend: unknown filter type {}".format(kind))
@@ -81,7 +82,7 @@ def guess_trended_period(data):
     period : int
 
     """
-    max_period = min(len(data) / 3, 512)
+    max_period = min(len(data) // 3, 512)
     broad = fit_trend(data, kind="median", period=max_period)
     peaks = periodogram_peaks(data - broad)
     if peaks is None:
@@ -116,7 +117,7 @@ def aglet(src, window, dst=None):
     """
     if dst is None:
         dst = np.array(src)
-    half = window / 2
+    half = window // 2
     leftslope = stats.theilslopes(src[: window])[0]
     rightslope = stats.theilslopes(src[-window :])[0]
     dst[0:half] = np.arange(-half, 0) * leftslope + src[half]
@@ -130,8 +131,8 @@ def median_filter(data, window):
 
     """
     filtered = np.copy(data)
-    for i in range(window/2, len(data) - window/2):
-        filtered[i] = np.median(data[max(0, i - window/2) : i + window/2 + 1])
+    for i in range(window // 2, len(data) - window // 2):
+        filtered[i] = np.median(data[max(0, i - window // 2) : i + window // 2 + 1])
     return filtered
 
 def mean_filter(data, window):
@@ -142,14 +143,14 @@ def mean_filter(data, window):
     """
     filtered = np.copy(data)
     cum = np.concatenate(([0], np.cumsum(data)))
-    half = window / 2
-    filtered[half : -half] = (cum[window:] - cum[:-window]) / float(window)
+    half = window // 2
+    filtered[half : -half] = (cum[window:] - cum[:-window]) / window
     return filtered
 
 def line_filter(data, window):
     """fit a line to the data, after filtering"""
     # knock down seasonal variation with a median filter first
-    half = window / 2
+    half = window // 2
     coarse = median_filter(data, window)[half : -half] # discard crazy ends
     slope, _, lower, upper = stats.theilslopes(coarse)
     if lower <= 0.0 and upper >= 0.0:

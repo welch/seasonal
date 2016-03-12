@@ -5,6 +5,7 @@
 # within empirical bounds, rather than tightly -- these tests are not
 # meant to follow confidence boundaries, just catch blunders
 #
+from __future__ import division
 import numpy as np
 import seasonal # pylint:disable=import-error
 import seasonal.sequences as sequences # pylint:disable=import-error
@@ -28,7 +29,7 @@ def try_zeros(noise=0, reps=1):
         s = sequences.add_noise(np.zeros(1000), noise)
         if fit_period(s) == None:
             npass += 1
-    print "try_zeros noise {0} -> {1}%".format(noise, (100 * npass) / reps)
+    print("try_zeros noise {0} -> {1}%".format(noise, (100 * npass) / reps))
     return npass
 
 def try_aperiodic(n, noise=0, reps=1):
@@ -39,25 +40,25 @@ def try_aperiodic(n, noise=0, reps=1):
         s = s - s.mean()
         if fit_period(s) == None:
             npass += 1
-    print "try_aperiod noise {0} -> {1}%".format(noise, (100 * npass) / reps)
+    print("try_aperiod noise {0} -> {1}%".format(noise, (100 * npass) / reps))
     return npass
 
 def try_square_wave(period, noise=0.0, reps=1):
     npass = 0
-    s = sequences.square(1.0, 0.30, period, CYCLES, period / 3)
+    s = sequences.square(1.0, 0.30, period, CYCLES, period // 3)
     for _ in range(reps):
         ns = sequences.add_noise(sequences.mix(s, 0, noise), noise)
         p = fit_period(ns)
         if period - EPS <= p and p <= period + EPS:
             npass += 1
-    print "try_square noise {0} period {1} -> {2}%".format(
-        noise, period, (100 * npass) / reps)
+    print("try_square noise {0} period {1} -> {2}%".format(
+        noise, period, (100 * npass) / reps))
     return npass
 
 def try_sawtooth(period, noise=0.0, reps=1):
     eps = 3 # why is sawtooth so flaky?
     npass = 0
-    s = sequences.sawtooth(1.0, period, CYCLES, period / 3)
+    s = sequences.sawtooth(1.0, period, CYCLES, period // 3)
     for _ in range(reps):
         ns = sequences.add_noise(sequences.mix(s, 0, noise), noise)
         ns = ns - ns.mean()
@@ -65,22 +66,22 @@ def try_sawtooth(period, noise=0.0, reps=1):
         if period - eps <= p and p <= period + eps:
             npass += 1
         else:
-            print "saw {0} got {1}".format(period, p)
-    print "try_sawtooth noise {0} period {1} -> {2}%".format(
-        noise, period, (100 * npass) / reps)
+            print("saw {0} got {1}".format(period, p))
+    print("try_sawtooth noise {0} period {1} -> {2}%".format(
+        noise, period, (100 * npass) / reps))
     return npass
 
 def try_sine(period, noise=0.0, reps=1):
     npass = 0
-    s = sequences.sine(1.0, period, CYCLES, period / 3)
+    s = sequences.sine(1.0, period, CYCLES, period // 3)
     for _ in range(reps):
         ns = sequences.add_noise(sequences.mix(s, 0, noise), noise)
         ns = ns - ns.mean()
         p = fit_period(ns)
         if period - EPS <= p and p <= period + EPS:
             npass += 1
-    print "try_sine noise {0} period {1} -> {2}%".format(
-        noise, period, (100 * npass) / reps)
+    print("try_sine noise {0} period {1} -> {2}%".format(
+        noise, period, (100 * npass) / reps))
     return npass
 
 def test_zeros():
@@ -136,10 +137,10 @@ def test_noisy_sine():
 
 def test_explicit_period():
     period = 200
-    s = sequences.sine(1.0, period, CYCLES, period / 3)
+    s = sequences.sine(1.0, period, CYCLES, period // 3)
     # wrong but plausible
     seasons, _ = seasonal.fit_seasons(s, period=period - 2)
     assert seasons is not None and len(seasons) == period - 2
     # flat out wrong
-    seasons, _ = seasonal.fit_seasons(s, period=period / 2)
+    seasons, _ = seasonal.fit_seasons(s, period=period // 2)
     assert seasons is None

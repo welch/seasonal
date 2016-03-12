@@ -7,6 +7,7 @@ commandline functions published as entry points in setup.py
  when commands are invoked with the --plot option.)
 
 """
+from __future__ import division
 from sys import stderr
 import os.path
 from optparse import OptionParser
@@ -131,18 +132,18 @@ def seasonal_cmd():
         else:
             stderr.write(
                 "{}\t{:.2f}\t{:.2f}\t{}\t{}\t{}\n".format(
-                    period, tev*100, fev*100, len(data), len(data) / period,
+                    period, tev*100, fev*100, len(data), len(data) // period,
                     csvpath))
 
         if options.csv:
-            print pd.DataFrame(
+            print(pd.DataFrame(
                 index=index,
                 data={column:data,
                       'trend':trend,
                       'detrended':detrended,
                       'adjusted':deseasoned,
                       'residual':deseasoned - trend}
-            ).to_csv()
+            ).to_csv())
 
         if options.plot:
             _seasonal_plot(os.path.basename(csvpath), column, index, data, trend, deseasoned)
@@ -224,10 +225,10 @@ def trend_cmd():
             _trend_plot(os.path.basename(csvpath), column, data, trend)
 
         elif options.csv:
-            print pd.DataFrame(
+            print(pd.DataFrame(
                 index=index,
                 data={column:data, 'trend':trend, 'adjusted':detrended}
-            ).to_csv()
+            ).to_csv())
 
 def _trend_plot(title, column, data, trend):
     """display trend results using matplotlib"""
@@ -304,10 +305,10 @@ def periodogram_cmd():
         else:
             periods, scores, _, _ = zip(*peaks)
             period = int(round(np.average(periods, weights=scores)))
-            print "avg_period:{} N:{} {}".format(period, len(data), csvpath)
-            print "period\tpmin\tpmax\tscore"
+            print("avg_period:{} N:{} {}".format(period, len(data), csvpath))
+            print("period\tpmin\tpmax\tscore")
             for peak in peaks:
-                print "{}\t{}\t{}\t{:.3f}".format(peak[0], peak[2], peak[3], peak[1])
+                print("{}\t{}\t{}\t{:.3f}".format(peak[0], peak[2], peak[3], peak[1]))
         if options.plot:
             _periodogram_plot(os.path.basename(csvpath), column, data, trend, peaks)
 

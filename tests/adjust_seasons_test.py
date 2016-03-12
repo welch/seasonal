@@ -5,6 +5,7 @@
 #
 # No noise in this test set.
 #
+from __future__ import division
 import numpy as np
 from seasonal import fit_trend, adjust_seasons # pylint:disable=import-error
 from seasonal.sequences import sine # pylint:disable=import-error
@@ -52,7 +53,7 @@ def test_trend_spline():
 def test_period():
     adjusted = adjust_seasons(DATA, period=PERIOD)
     assert adjusted.std() < DATA.std()
-    adjusted = adjust_seasons(DATA, period=PERIOD / 2) # no seasonality
+    adjusted = adjust_seasons(DATA, period=PERIOD // 2) # no seasonality
     assert adjusted is None
 
 def test_seasons():

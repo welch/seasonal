@@ -7,6 +7,7 @@
 # to follow confidence boundaries, just catch blunders (the random
 # seed may be changed if you must work around a spot of bad luck).
 #
+from __future__ import division
 import numpy as np
 from seasonal import fit_trend
 import seasonal.sequences as sequences
@@ -24,7 +25,7 @@ def test_sine_trend():
     for kind in ["mean", "median", "spline", "line"]:
         for period in PERIODS:
             for slope in SLOPES:
-                s = sequences.sine(AMP, period, CYCLES, period / 3)
+                s = sequences.sine(AMP, period, CYCLES, period // 3)
                 trend = np.arange(len(s)) * slope / len(s)
                 s += trend
                 a = fit_trend(s, kind=kind)
@@ -36,11 +37,11 @@ def test_sine_bend():
     for kind in ["mean", "median", "spline"]:
         for period in PERIODS:
             for slope in SLOPES:
-                s = sequences.sine(AMP, period, CYCLES, period / 3)
+                s = sequences.sine(AMP, period, CYCLES, period // 3)
                 trend = np.arange(len(s)+1) * slope / len(s)
                 trend = np.concatenate((trend[::2], trend[::-2]))[:len(s)]
                 s += trend
                 a = fit_trend(s, kind=kind)
                 rmse = np.sqrt(np.mean((a - trend) ** 2))
-                print kind, period, slope, rmse, s.std()
+                print(kind, period, slope, rmse, s.std())
                 assert rmse <= s.std() / 2.0

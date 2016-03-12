@@ -2,6 +2,7 @@
 """Frequency estimation via periodograms
 
 """
+from __future__ import division
 import numpy as np
 import scipy.signal
 
@@ -100,7 +101,7 @@ def periodogram(data, min_period=4, max_period=None):
     """
     if max_period is None:
         max_period = int(min(len(data) / MIN_FFT_CYCLES, MAX_FFT_PERIOD))
-    nperseg = min(max_period * 2, len(data) / 2) # FFT window
+    nperseg = min(max_period * 2, len(data) // 2) # FFT window
     freqs, power = scipy.signal.welch(
         data, 1.0, scaling='spectrum', nperseg=nperseg)
     periods = np.array([int(round(1.0 / freq)) for freq in freqs[1:]])
