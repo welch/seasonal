@@ -48,7 +48,7 @@ def fit_trend(data, kind="spline", period=None, ptimes=2):
 
     """
     if kind is None:
-        return np.zeros(len(data))
+        return np.zeros(len(data)) + np.mean(data)
     if period is None:
         period = guess_trended_period(data)
     window = (int(period * ptimes) // 2) * 2 - 1 # odd window
@@ -154,9 +154,10 @@ def line_filter(data, window):
     coarse = median_filter(data, window)[half : -half] # discard crazy ends
     slope, _, lower, upper = stats.theilslopes(coarse)
     if lower <= 0.0 and upper >= 0.0:
-        filtered = np.zeros(len(data))
+        filtered = np.zeros(len(data)) + np.median(data)
     else:
-        filtered = slope  * np.arange(len(data))
+        intercept = np.median(data) - (len(data) - 1) / 2 * slope
+        filtered = slope * np.arange(len(data)) + intercept
     return filtered
 
 def spline_filter(data, nsegs):
