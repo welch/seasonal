@@ -43,7 +43,7 @@ def read_csv(path, column=-1, split=None):
     index, data, colname : pandas.tseries.index.DatetimeIndex, ndarray, str
 
     """
-    data = pd.read_csv(path, index_col=0, parse_dates=0)
+    data = pd.read_csv(path, index_col=0, parse_dates=[0])
     try:
         colidx = int(column)
         if colidx > 0:
