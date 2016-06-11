@@ -8,9 +8,7 @@ below, and were accessed on Feb 9, 2016.
 
 Each of these has been reformatted to consist of an index column and a
 value column. The index may be an ISO datetime, or simply an integer
-if time information has been lost. Some sequences that originally
-included level-shift anomalies have been truncated to exclude them,
-where noted.
+if time information has been lost.
 
 `beer.4.csv`
 

@@ -9,7 +9,7 @@ timeseries data with only a few periods.  It is intended for
 estimating season, trend, and level when initializing structural
 timeseries models like Holt-Winters [Hyndman], and its defaults are
 biased towards the kinds of training data that arise in that setting. Input
-samples are assumed evenly-spaced from a continuous-time signal with
+samples are assumed evenly-spaced from a continuous real-valued signal with
 additive noise but no anomalies.
 
 The seasonal estimate will be a list of period-over-period averages at
@@ -21,11 +21,10 @@ series, collected at differing sampling rates, automatic period
 detection is a real convenience.
 
 Trend removal in this package is in service of isolating and
-estimating the periodic (non-trend) variation. "trend" is in the sense
-of Cleveland's STL decomposition [Cleveland] -- a lowpass smoothing of
-the data that, when removed from the original series, preserves
-original seasonal variation.  Detrending is accomplishd by a coarse
-fitted spline, mean or median filters, or a fitted line.
+estimating the periodic (non-trend) variation. A lowpass smoothing of
+the data is removed from the original series, preserving original
+seasonal variation.  Detrending is accomplishd by a coarse fitted
+spline, mean or median filters, or a fitted line.
 
 In an addition to a python API for estimating seasonal offsets for
 your timeseries models, the seasonal package also provides executables
