@@ -48,6 +48,7 @@ def periodogram_peaks(data, min_period=4, max_period=None, thresh=0.90):
 
     """
     periods, power = periodogram(data, min_period, max_period)
+    power = np.nan_to_num(power)
     if np.all(np.isclose(power, 0.0)):
         return None # DC
     result = []
